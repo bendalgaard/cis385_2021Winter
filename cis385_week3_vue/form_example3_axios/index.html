@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, user-scalable=no, initial-scale=1.0"/>
+    <title></title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="./static/css/main.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+
+<div id="app">
+    <h2> {{ pageName }} </h2>
+    <ul>
+        <li v-for="(book, index) in books" :key="book.id">
+            <input type="number" class="quantity" v-model.number="book.quantity">
+            <span> {{ book.title }} </span>
+            <span v-if="book.quantity === 0">
+                - OUT OF STOCK
+            </span>
+            <span v-else-if="book.quantity < 10">
+                - Only a few left!
+            </span>
+            <span> {{ fullName(book) }} </span>
+            <button type="submit" class="btn btn-primary submit" v-on:click="deleteBook(index)">DELETE</button>
+        </li>
+    </ul>
+    <h2>Total Books available: {{ totalBooks }}</h2>
+
+    <form id="addbook-form" @submit.prevent="addBook">
+        <div class="form-group">
+            <label for="firstName">First Name:</label>
+            <input class="form-control" id="firstName">
+
+            <label for="lastName">Last Name:</label>
+            <input class="form-control" id="lastName">
+
+            <label for="title">Title:</label>
+            <input class="form-control" id="title">
+
+            <label for="year">Year:</label>
+            <input type="number" class="form-control" id="year">
+
+            <label for="quantity">Quantity:</label>
+            <input type="number" class="form-control" id="quantity">
+        </div>
+        <div class="col-md-6">
+            <button class="btn btn-primary">Add Book</button>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    import axios from 'axios';
+    
+    const app = new Vue({
+        el: '#app',
+        data: {
+            pageName: "Vue.js app",
+            books: []
+        },
+        computed: {
+            totalBooks: function () {
+                return this.books.reduce((sum, book) => {
+                    return sum + book.quantity;
+                }, 0);
+            }
+        },
+        methods: {
+            fullName: function (book) {
+                return [book.firstName, book.lastName].join(' ');
+            },
+            addBook: function() {
+                console.log("addbook()");
+
+                const addBookForm = document.getElementById('addbook-form');
+                const firstNameInput  = addBookForm.querySelector('input[id=firstName]');
+                const lastNameInput = addBookForm.querySelector('input[id=lastName]');
+                const titleInput = addBookForm.querySelector('input[id=title]');
+                const yearInput = addBookForm.querySelector('input[id=year]');
+                const quantityInput = addBookForm.querySelector('input[id=quantity]');
+
+                this.books.push({"id": this.books.len, "firstName": firstNameInput.value, "lastName": lastNameInput.value, "title": titleInput.value, "quantity": parseInt(quantityInput.value, 10), "year": yearInput.value})
+            },
+            deleteBook: function(index) {
+                console.log("deleteBook() was called ", index);
+                this.books.splice(index, 1);
+            }
+        },
+        created: function() {
+            
+
+            // Make a request for a user with a given ID
+            axios.get('http://flask-env.eba-ucasrtms.us-east-2.elasticbeanstalk.com/book')
+              .then(function (response) {
+                // handle success
+                console.log(response);
+                this.books=response;
+              })
+              .catch(function (error) {
+                // handle error
+                console.log(error);
+              })
+              .then(function () {
+                // always executed
+              });
+        }
+    });
+</script>
+
+
+</body>
+</html>
